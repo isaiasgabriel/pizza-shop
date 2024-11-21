@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -41,6 +42,20 @@ export function SignIn() {
     <>
       <Helmet title="Login" />
       <div className="p-8">
+        {/*
+          asChild makes it possible for the child component to inherit all the properties and styles of the Button.
+        */}
+        <Button
+          asChild
+          variant={'outline'}
+          className="absolute right-8 top-8"
+          // absolute: Positions the button absolutely within its nearest relative parent.
+          // right-8: Places the button 2rem (32px) from the right edge of the parent container.
+          // top-8: Places the button 2rem (32px) from the top edge of the parent container.
+        >
+          <Link to={'/sign-up'}>New establishment?</Link>
+        </Button>
+
         <div className="flex w-[350px] flex-col justify-center gap-6">
           <div className="flex flex-col gap-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">

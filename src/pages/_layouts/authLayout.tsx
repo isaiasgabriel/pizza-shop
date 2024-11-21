@@ -14,7 +14,9 @@ export function AuthLayout() {
           Partner dashboard - Pizza shop - {new Date().getFullYear()}
         </footer>
       </div>
-      <div className="flex flex-col items-center justify-center">
+      {/* Position changed to relative so in the child component we can use absolute positioning
+      to create a button that's stays on top right */}
+      <div className="relative flex flex-col items-center justify-center">
         <Outlet />
       </div>
     </div>
