@@ -1,4 +1,4 @@
-import { Link, LinkProps } from 'react-router-dom'
+import { Link, LinkProps, useLocation } from 'react-router-dom'
 
 export type NavLinkProps = LinkProps
 
@@ -9,10 +9,13 @@ export type NavLinkProps = LinkProps
 // and applying additional default styles via the `className` property.
 
 export function NavLink(props: NavLinkProps) {
+  const { pathname } = useLocation()
   return (
     <Link
+      // "to" refers to the page that the link goes
+      data-current={pathname === props.to}
       {...props} // Spreads all incoming props onto the Link component.
-      className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+      className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground data-[current=true]:text-foreground"
       // Adds custom Tailwind CSS classes:
       // - flex: Makes the link a flex container.
       // - items-center: Aligns children vertically at the center.
