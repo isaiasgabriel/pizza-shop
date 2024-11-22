@@ -1,16 +1,15 @@
-import { Check, Search, X } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
+import { OrderTableRow } from './order-table-row'
 
 export function Orders() {
   return (
@@ -49,61 +48,7 @@ export function Orders() {
             </TableHeader>
             <TableBody>
               {Array.from({ length: 10 }).map((_, i) => {
-                return (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Button variant={'outline'} size="xs">
-                        <Search className="h-3 w-3" />
-                        <span
-                          className="sr-only"
-                          /* sr-only: screen reader only
-                      it'll not be displayed on the screen
-                    */
-                        >
-                          Order details
-                        </span>
-                      </Button>
-                    </TableCell>
-                    <TableCell className="text-sx font-mono font-medium">
-                      749a1547-18b9-4dca-a3cc-21e40c8ffcad
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      15 minutes ago
-                    </TableCell>
-                    <TableCell>
-                      <div
-                        className="flex items-center gap-2"
-                        /**
-                         * Apparently you can't apply flex and items-center
-                         * directly to the table cell component
-                         * so we have to create this div that wraps our
-                         * status table cell
-                         **/
-                      >
-                        <span className="h-2 w-2 rounded-full bg-slate-400"></span>
-                        <span className="font-medium text-muted-foreground">
-                          Waiting
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      Bashar Jacskon
-                    </TableCell>
-                    <TableCell className="font-medium">R$ 89,90</TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="xs">
-                        <Check className="h-3 w-3" />
-                        Approve
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="xs">
-                        <X className="h-3 w-3" />
-                        Cancel
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )
+                return <OrderTableRow key={i} />
               })}
             </TableBody>
           </Table>
