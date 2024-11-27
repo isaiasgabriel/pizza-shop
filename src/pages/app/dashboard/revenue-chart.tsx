@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import colors from 'tailwindcss/colors'
 
 import {
   Card,
@@ -41,7 +42,25 @@ export function RevenueChart() {
       <CardContent>
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={data} style={{ fontSize: 12 }}>
-            <Line type="linear" strokeWidth={2} dataKey="revenue"></Line>
+            <XAxis dataKey="date" axisLine={false} tickLine={false} dy={16} />
+            <YAxis
+              stroke="#888"
+              axisLine={false}
+              tickLine={false}
+              width={80}
+              tickFormatter={(value: number) =>
+                value.toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                })
+              }
+            />
+            <Line
+              type="linear"
+              strokeWidth={2}
+              dataKey="revenue"
+              stroke={colors.violet[500]}
+            ></Line>
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
