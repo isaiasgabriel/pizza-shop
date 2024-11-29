@@ -13,21 +13,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import { Skeleton } from './ui/skeleton'
 
 export function AccountMenu() {
   // If you need to use the user profile data in different parts of your application,
   // instead of making another API call to fetch it, React Query allows us to reuse this data
   // if it has already been fetched elsewhere in the application. This is why you need
   // the queryKey: to identify the request and enable its optimization.
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['profile'],
     queryFn: GetProfileAPICall,
   })
 
-  const { data: managedRestaurant } = useQuery({
-    queryKey: ['managed-restaurant'],
-    queryFn: GetManagedRestaurantAPICall,
-  })
+  const { data: managedRestaurant, isLoading: isLoadingManagedRestaurant } =
+    useQuery({
+      queryKey: ['managed-restaurant'],
+      queryFn: GetManagedRestaurantAPICall,
+    })
 
   return (
     <DropdownMenu>
@@ -38,7 +40,11 @@ export function AccountMenu() {
           variant={'outline'}
           className="flex select-none items-center gap-2"
         >
-          {managedRestaurant?.name}
+          {isLoadingManagedRestaurant ? (
+            <Skeleton className="h-4 w-40" />
+          ) : (
+            managedRestaurant?.name
+          )}
           {/* 
               Using "?." ensures that we safely access properties on potentially null or undefined objects.
               Without it, if the API call fails and the profile object is null, trying to access profile.email would result in an error.
@@ -50,16 +56,19 @@ export function AccountMenu() {
       {/* Aligns the dropdown menu's right edge with the trigger's right edge, positioning it to the right. */}
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="flex flex-col">
-          <span>{profile?.name}</span>
-          <span
-            className="text-xs font-normal text-muted-foreground"
-            /*
-          text-xs: text xtra small
-          text-muted-foreground: a light gray tone
-           */
-          >
-            {profile?.email}
-          </span>
+          {isLoadingProfile ? (
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          ) : (
+            <>
+              <span>{profile?.name}</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                {profile?.email}
+              </span>
+            </>
+          )}
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator />
