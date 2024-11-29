@@ -1,9 +1,11 @@
+import { useMutation } from '@tanstack/react-query'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { SignInAPICall } from '@/api/sign-in'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,15 +24,30 @@ export function SignIn() {
     formState: { isSubmitting },
   } = useForm<SignInForm>({})
 
+  // Every POST, PUT, or DELETE request is considered a mutation.
+  // Why use this function?
+  // Suppose the API is slow or the response is delayed.
+  // We can use the "retry" option to attempt the request up to 3 times,
+  // ensuring the API is not temporarily offline.
+  const { mutateAsync: authenticate } = useMutation({
+    mutationFn: SignInAPICall,
+  })
+  // We are using mutateAsync here because:
+  // 1. It integrates the API call into react-query's system, allowing us to easily track
+  //    the mutation's state (e.g., loading, success, error).
+  // 2. It provides built-in support for retries, ensuring reliability if the API is temporarily unavailable.
+  // 3. It enables clean and consistent error handling, making the code more robust.
+  // 4. It allows us to leverage react-query's caching features, such as invalidating related queries
+  //    after a successful sign-in if needed.
+
   async function handleSignIn(data: SignInForm) {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      toast.success('Check your email', {
+      await authenticate({ email: data.email })
+
+      toast.success("We've sent an auth link to your email", {
         action: {
           label: 'Resend',
-          onClick: () => {
-            handleSignIn(data)
-          },
+          onClick: () => handleSignIn(data),
         },
       })
     } catch {
