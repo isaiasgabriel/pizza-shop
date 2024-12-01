@@ -35,6 +35,7 @@ export function StoreProfileModalDialog() {
   const { data: managedRestaurant } = useQuery({
     queryKey: ['managed-restaurant'],
     queryFn: GetManagedRestaurantAPICall,
+    staleTime: Infinity,
   })
 
   const {

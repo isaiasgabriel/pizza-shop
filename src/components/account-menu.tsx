@@ -25,12 +25,27 @@ export function AccountMenu() {
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['profile'],
     queryFn: GetProfileAPICall,
+    staleTime: Infinity,
   })
 
   const { data: managedRestaurant, isLoading: isLoadingManagedRestaurant } =
     useQuery({
       queryKey: ['managed-restaurant'],
       queryFn: GetManagedRestaurantAPICall,
+      staleTime: Infinity,
+      // refetchOnWindowFocus: true,
+      //
+      // By default, this property is set to `true` even if you don't explicitly specify it.
+      // This means React Query will automatically fetch the API every time the user loses
+      // and regains window focus.
+      //
+      // If the information you're fetching changes frequently, consider setting a `staleTime`
+      // (e.g., `staleTime: 1000`) to ensure it displays the most up-to-date information.
+      //
+      // On the other hand, if the information rarely changes—such as in this case where we're
+      // dealing with the restaurant name—you can set `staleTime: Infinity`. This ensures the
+      // data is only refetched if the page is reloaded or a manual method is triggered to fetch
+      // the information again.
     })
 
   return (
