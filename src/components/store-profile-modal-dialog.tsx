@@ -25,7 +25,7 @@ import { Textarea } from './ui/textarea'
 
 const storeProfileSchema = z.object({
   name: z.string().min(1),
-  description: z.string(),
+  description: z.string().nullable(),
 })
 
 type StoreProfileSchema = z.infer<typeof storeProfileSchema>
@@ -55,28 +55,50 @@ export function StoreProfileModalDialog() {
 
   const queryClient = useQueryClient()
 
+  function updateManagedRestaurantCache({
+    name,
+    description,
+  }: StoreProfileSchema) {
+    // Retrieve the current data cached under the 'managed-restaurant' query key
+    const cached = queryClient.getQueryData<GetManagedRestaurantResponse>([
+      'managed-restaurant',
+    ])
+
+    // If cached data exists, update the query data for this key
+    if (cached) {
+      queryClient.setQueryData<GetManagedRestaurantResponse>(
+        ['managed-restaurant'],
+        {
+          // Copy the existing data (...cached) and overwrite it with the updated name and description
+          ...cached,
+          name,
+          description,
+        },
+      )
+    }
+    return { cached }
+    // Return the previous cached data. This allows us to revert the cache to its original state
+    // in case an error occurs during the update process.
+  }
+
   const { mutateAsync: updateProfileFn } = useMutation({
     mutationFn: UpdateProfileAPICall,
-    // onSuccess is a callback function executed after a successful profile update.
-    // It updates the cached data of the 'managed-restaurant' query key
-    // with the new name and description, ensuring the UI reflects the latest changes.
-    onSuccess(_, { name, description }) {
-      // Retrieve the current data cached under the 'managed-restaurant' query key
-      const cached = queryClient.getQueryData<GetManagedRestaurantResponse>([
-        'managed-restaurant',
-      ])
 
-      // If cached data exists, update the query data for this key
-      if (cached) {
-        queryClient.setQueryData<GetManagedRestaurantResponse>(
-          ['managed-restaurant'],
-          {
-            // Copy the existing data (...cached) and overwrite it with the updated name and description
-            ...cached,
-            name,
-            description,
-          },
-        )
+    // Instead of waiting for confirmation from the backend to update the information,
+    // we optimistically update the cached data immediately.
+    // This approach prevents the user from perceiving any delay in the update process.
+    // In summary, this is a trick to make the system feel faster. For this reason, we use onMutate instead of onSuccess.
+    onMutate({ name, description }) {
+      const { cached } = updateManagedRestaurantCache({ name, description })
+
+      return { previousProfile: cached } // Return the previous cached data so it can be used to roll back changes if an error occurs
+    },
+
+    // If an error occurs, the previous cached data (stored in the context) is used to revert the changes.
+    // This ensures the cache is restored to its original state if the update fails.
+    onError(_, __, context) {
+      if (context?.previousProfile) {
+        updateManagedRestaurantCache(context.previousProfile)
       }
     },
   })
