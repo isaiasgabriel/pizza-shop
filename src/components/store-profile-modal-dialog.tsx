@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { GetManagedRestaurantAPICall } from '@/api/get-managed-restaurant'
+import {
+  GetManagedRestaurantAPICall,
+  GetManagedRestaurantResponse,
+} from '@/api/get-managed-restaurant'
 import { UpdateProfileAPICall } from '@/api/update-profile'
 
 import { Button } from './ui/button'
@@ -50,8 +53,32 @@ export function StoreProfileModalDialog() {
     },
   })
 
+  const queryClient = useQueryClient()
+
   const { mutateAsync: updateProfileFn } = useMutation({
     mutationFn: UpdateProfileAPICall,
+    // onSuccess is a callback function executed after a successful profile update.
+    // It updates the cached data of the 'managed-restaurant' query key
+    // with the new name and description, ensuring the UI reflects the latest changes.
+    onSuccess(_, { name, description }) {
+      // Retrieve the current data cached under the 'managed-restaurant' query key
+      const cached = queryClient.getQueryData<GetManagedRestaurantResponse>([
+        'managed-restaurant',
+      ])
+
+      // If cached data exists, update the query data for this key
+      if (cached) {
+        queryClient.setQueryData<GetManagedRestaurantResponse>(
+          ['managed-restaurant'],
+          {
+            // Copy the existing data (...cached) and overwrite it with the updated name and description
+            ...cached,
+            name,
+            description,
+          },
+        )
+      }
+    },
   })
 
   async function handleUpdateProfile(data: StoreProfileSchema) {
