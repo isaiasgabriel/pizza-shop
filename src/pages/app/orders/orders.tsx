@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Helmet } from 'react-helmet-async'
+import { useSearchParams } from 'react-router-dom'
+import { z } from 'zod'
 
 import { getOrdersAPICall } from '@/api/get-orders'
 import { Pagination } from '@/components/pagination'
@@ -15,10 +17,47 @@ import { OrderTableFilters } from './order-table-filters'
 import { OrderTableRow } from './order-table-row'
 
 export function Orders() {
+  // Why not use states?
+  // Because states reset to their initial value after a page reload.
+  // Instead, we use search parameters, which persist even after a reload.
+  // This also allows us to share a link, and it will open on the same pageIndex.
+
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Instead of using the following approach directly:
+  //
+  // const pageIndex = searchParams.get('page') ?? 0;
+  //
+  // we avoid it because, for users, a page number of 0 doesn't make sense.
+  // To ensure a user-friendly experience, we default to page 1 in the search parameters.
+  // However, when fetching data from the API, we adjust the page number by subtracting 1
+  // (to match the API's expected zero-based indexing).
+
+  const pageIndex = z.coerce
+    .number()
+    .transform((page) => page - 1)
+    .parse(searchParams.get('page') ?? 1)
+
   const { data: result } = useQuery({
-    queryKey: ['orders'],
-    queryFn: getOrdersAPICall,
+    // !!! IMPORTANT
+    // Don't forget to add the pageIndex inside the query key
+    // Since react query reuses data fetched on the same query key
+    // it's default behavior will simply reuse the data previously fetched
+    // so it won't update the orders list
+    queryKey: ['orders', pageIndex],
+    queryFn: () => getOrdersAPICall({ pageIndex }),
   })
+
+  // When we set the pageIndex, we increment it by 1.
+  // Our functions that retrieve the page index subtract 1,
+  function handlePaginate(pageIndex: number) {
+    // state is the existing search params in the URL
+    setSearchParams((state) => {
+      state.set('page', (pageIndex + 1).toString())
+
+      return state
+    })
+  }
 
   return (
     <>
@@ -65,7 +104,14 @@ export function Orders() {
               </TableBody>
             </Table>
           </div>
-          <Pagination pageIndex={0} totalCount={105} perPage={10} />
+          {result && (
+            <Pagination
+              onPageChange={handlePaginate}
+              pageIndex={result.meta.pageIndex}
+              totalCount={result.meta.totalCount}
+              perPage={result.meta.perPage}
+            />
+          )}
         </div>
       </div>
     </>
