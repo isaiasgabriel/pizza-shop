@@ -1,5 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { Helmet } from 'react-helmet-async'
 
+import { getOrdersAPICall } from '@/api/get-orders'
 import { Pagination } from '@/components/pagination'
 import {
   Table,
@@ -13,6 +15,11 @@ import { OrderTableFilters } from './order-table-filters'
 import { OrderTableRow } from './order-table-row'
 
 export function Orders() {
+  const { data: result } = useQuery({
+    queryKey: ['orders'],
+    queryFn: getOrdersAPICall,
+  })
+
   return (
     <>
       {/* Title */}
@@ -34,7 +41,7 @@ export function Orders() {
                 <TableRow>
                   <TableHead className="w-[64px]"></TableHead>
                   <TableHead className="w-[325px]">Identifier</TableHead>
-                  <TableHead className="w-[180px]">Time passed</TableHead>
+                  <TableHead className="w-[180px]">Created</TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead className="w-[140px]">Total</TableHead>
@@ -43,9 +50,18 @@ export function Orders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.from({ length: 10 }).map((_, i) => {
-                  return <OrderTableRow key={i} />
-                })}
+                {/* 
+                  Result is the response of the API fetch made by the useQuery function above.
+                  So it checks if there is a result. If a result exists, the orders will be mapped.
+                  Note: The response from the orders route is divided into `meta` and `orders`.
+                  This is why the code accesses `result.orders.map` instead of just `result.map`.
+                  The `map` function iterates over each order and creates a corresponding 
+                  <OrderTableRow /> component for it.
+                */}
+                {result &&
+                  result.orders.map((order) => {
+                    return <OrderTableRow key={order.orderId} order={order} />
+                  })}
               </TableBody>
             </Table>
           </div>
