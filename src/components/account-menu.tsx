@@ -1,9 +1,11 @@
 import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Building, ChevronDown, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 import { GetManagedRestaurantAPICall } from '@/api/get-managed-restaurant'
 import { GetProfileAPICall } from '@/api/get-profile'
+import { signOutAPICall } from '@/api/sign-out'
 
 import { StoreProfileModalDialog } from './store-profile-modal-dialog'
 import { Button } from './ui/button'
@@ -47,6 +49,17 @@ export function AccountMenu() {
       // data is only refetched if the page is reloaded or a manual method is triggered to fetch
       // the information again.
     })
+
+  const navigate = useNavigate()
+
+  const { mutateAsync: signOutFn, isPending: isSigningOut } = useMutation({
+    mutationFn: signOutAPICall,
+    onSuccess: () => {
+      navigate('/sign-in', { replace: true })
+      // replace will substitute the route
+      // so it won't be ale to go back to the dashboard
+    },
+  })
 
   return (
     <Dialog>
@@ -98,9 +111,15 @@ export function AccountMenu() {
             </DropdownMenuItem>
           </DialogTrigger>
 
-          <DropdownMenuItem>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
+          <DropdownMenuItem
+            asChild
+            className="text-rose-500 dark:text-rose-400"
+            disabled={isSigningOut}
+          >
+            <button className="w-full" onClick={() => signOutFn()}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
