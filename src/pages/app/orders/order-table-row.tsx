@@ -1,11 +1,15 @@
+import { useMutation } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { Check, Search, X } from 'lucide-react'
 import { useState } from 'react'
 
+import { CancelOrderAPICall } from '@/api/cancel-order'
+import { GetOrdersResponse } from '@/api/get-orders'
 import { OrderStatus } from '@/components/order-status'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { queryClient } from '@/lib/react-query'
 
 import { OrderDetails } from './order-details'
 
@@ -21,6 +25,39 @@ export interface OrderTableRowProps {
 
 export function OrderTableRow({ order }: OrderTableRowProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+
+  const { mutateAsync: cancelOrderFn } = useMutation({
+    // 1. Cancel the order through the API
+    mutationFn: CancelOrderAPICall,
+
+    // 2. Retrieve all cached queries related to the orders list.
+    // `getQueriesData` returns an array of [queryKey, cachedData] pairs for the matching query keys.
+    async onSuccess(_, { orderId }) {
+      // 2.1. Gather the orders list cache
+      const ordersListCache = queryClient.getQueriesData<GetOrdersResponse>({
+        queryKey: ['orders'],
+      })
+
+      // 2.2. Iterate over each cached query to update its data.
+      ordersListCache.forEach(([cacheKey, cacheData]) => {
+        if (!cacheData) {
+          return // Skip if no cached data exists for the query key.
+        }
+
+        // 2.3. Update the specific cached query data.
+        queryClient.setQueryData<GetOrdersResponse>(cacheKey, {
+          ...cacheData,
+          orders: cacheData.orders.map((order) => {
+            if (order.orderId === orderId) {
+              return { ...order, status: 'canceled' }
+            }
+
+            return order
+          }),
+        })
+      })
+    },
+  })
 
   return (
     <TableRow>
@@ -61,7 +98,14 @@ export function OrderTableRow({ order }: OrderTableRowProps) {
         </Button>
       </TableCell>
       <TableCell>
-        <Button variant="ghost" size="xs">
+        <Button
+          variant="ghost"
+          size="xs"
+          // You can only cancel the order if it's 'pending' or 'processing'
+          // any other status you can't cancel it
+          disabled={!['pending', 'processing'].includes(order.status)}
+          onClick={() => cancelOrderFn({ orderId: order.orderId })}
+        >
           <X className="h-3 w-3" />
           Cancel
         </Button>
