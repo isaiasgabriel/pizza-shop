@@ -38,14 +38,24 @@ export function Orders() {
     .transform((page) => page - 1)
     .parse(searchParams.get('page') ?? 1)
 
+  const orderId = searchParams.get('orderId')
+  const customerName = searchParams.get('customerName')
+  const status = searchParams.get('status')
+
   const { data: result } = useQuery({
-    // !!! IMPORTANT
-    // Don't forget to add the pageIndex inside the query key
-    // Since react query reuses data fetched on the same query key
-    // it's default behavior will simply reuse the data previously fetched
-    // so it won't update the orders list
-    queryKey: ['orders', pageIndex],
-    queryFn: () => getOrdersAPICall({ pageIndex }),
+    // The queryKey includes dynamic parameters (pageIndex, orderId, customerName, and status) that uniquely identify the query.
+    // React Query uses this key to manage caching and determine if a new API call is needed.
+    // When React Query detects a new queryKey, it automatically triggers a fresh API fetch using the queryFn.
+    // So whenever we update the searchParams in the order-table-filters.tsx file, it will automatically trigger this function
+    // that'll fetch the data that matches de searchParams on the URL.
+    queryKey: ['orders', pageIndex, orderId, customerName, status],
+    queryFn: () =>
+      getOrdersAPICall({
+        pageIndex,
+        orderId,
+        customerName,
+        status: status === 'all' ? null : status, // checks if the status is "all", if so returns null to the request
+      }),
   })
 
   // When we set the pageIndex, we increment it by 1.
