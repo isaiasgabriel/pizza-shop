@@ -15,22 +15,19 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+import { OrderDetailsSkeleton } from './order-details-skeleton'
+
 export interface OrderDetailsProps {
   orderId: string
   open: boolean
 }
 
 export function OrderDetails({ orderId, open }: OrderDetailsProps) {
-  const { data: order } = useQuery({
+  const { data: order, isLoading: isLoadingOrderDetails } = useQuery({
     queryKey: ['order', orderId],
     queryFn: () => getOrderDetailsAPICall({ orderId }),
     enabled: open,
   })
-
-  // This checks ensures that we don't need to type "order?.id"
-  if (!order) {
-    return null
-  }
 
   return (
     <DialogContent>
@@ -41,6 +38,7 @@ export function OrderDetails({ orderId, open }: OrderDetailsProps) {
         </DialogDescription>
       </DialogHeader>
 
+      {isLoadingOrderDetails && <OrderDetailsSkeleton />}
       {order && (
         <div className="space-y-6">
           {/* Order table */}
