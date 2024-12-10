@@ -15,6 +15,7 @@ import {
 
 import { OrderTableFilters } from './order-table-filters'
 import { OrderTableRow } from './order-table-row'
+import { OrderTableSkeleton } from './order-table-skeleton'
 
 export function Orders() {
   // Why not use states?
@@ -42,7 +43,7 @@ export function Orders() {
   const customerName = searchParams.get('customerName')
   const status = searchParams.get('status')
 
-  const { data: result } = useQuery({
+  const { data: result, isLoading: isLoadingOrders } = useQuery({
     // The queryKey includes dynamic parameters (pageIndex, orderId, customerName, and status) that uniquely identify the query.
     // React Query uses this key to manage caching and determine if a new API call is needed.
     // When React Query detects a new queryKey, it automatically triggers a fresh API fetch using the queryFn.
@@ -107,6 +108,7 @@ export function Orders() {
                   The `map` function iterates over each order and creates a corresponding 
                   <OrderTableRow /> component for it.
                 */}
+                {isLoadingOrders && <OrderTableSkeleton />}
                 {result &&
                   result.orders.map((order) => {
                     return <OrderTableRow key={order.orderId} order={order} />
